@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone 
 
 from rest_framework_api_key.models import AbstractAPIKey
 
@@ -9,6 +10,11 @@ class Application(models.Model):
 	"""
 	name = models.CharField(max_length=50, blank=True)
 	host = models.URLField(null=True, unique=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		return self.name
+
+
 class ApplicationAPIKey(AbstractAPIKey):
 	"""
 	Application API Key
@@ -23,6 +29,20 @@ class Session(models.Model):
 	"""
 	Session Models
 	"""
+	session_id = models.UUIDField(db_index=True, editable=False, null=False, blank=False, unique=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		return self.session_id
+
+class Category(models.Model):
+
+	class Meta:
+		verbose_name_plural = "Categories"
+
+	name = models.CharField(max_length=50)
+
+	def __str__(self):
+		return self.name
 
 
 class Event(models.Model):
@@ -32,11 +52,22 @@ class Event(models.Model):
 	An Event is associated to a Session
 	Events in a Session should be sequential and ordered by the time they occurred
 	"""
-	category = models.CharField(max_length=50)
-	name = models.CharField(max_length=50)
-	applications = models.ForeignKey(Application, related_name="applications", on_delete=models.CASCADE)
-	sessions = models.ForeignKey(Session, related_name="sessions", on_delete=models.CASCADE)
+	class EventName(models.TextChoices):
+    
+	    SUBMIT = "submit", "Submit"
+	    PAGEVIEW = "pageview", "Pageview"
+	    CTA_CLICK = "cta click", "CTA Click"
+
+	category = models.ForeignKey(Category, related_name="events", on_delete=models.CASCADE)
+	name = models.CharField(max_length=10, choices=EventName.choices)
+	application = models.ForeignKey(Application, related_name="events", on_delete=models.CASCADE)
+	session = models.ForeignKey(Session, related_name="events", on_delete=models.CASCADE)
 	created_at = models.DateTimeField(auto_now_add=True)
+	timestamp = models.DateTimeField()
+	payload = models.JSONField()
 
 	def __str__(self):
 		return self.name
+
+
+

@@ -12,7 +12,7 @@ from .models import Event
 class EventViewSet(viewsets.ModelViewSet):
 	
 	serializer_class = EventSerializer
-	queryset = Event.objects.all().order_by('timestamp')
+	queryset = Event.objects.all().order_by('created_at')
 
 	def get_queryset(self):
 		
